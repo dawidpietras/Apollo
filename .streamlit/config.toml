@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#B2FF59"         # Neonowa limonka
+backgroundColor = "#121212"      # Głęboka czerń/szarość
+secondaryBackgroundColor = "#1E1E1E" # Nieco jaśniejsze tło panelu
+textColor = "#FAFAFA"            # Biały tekst
+font = "sans serif"
