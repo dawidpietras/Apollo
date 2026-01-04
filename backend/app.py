@@ -2,7 +2,6 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 from backend.prompts import *
-from pydantic import BaseModel, Field
 import instructor
 from models.chat_models import Ingredient, ShoppingList
 
