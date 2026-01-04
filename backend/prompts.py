@@ -28,6 +28,16 @@ Nie mam pomysłu na jutrzejszy obiad. Zaproponuj coś rodem ze Sri Lanki
 
 shopping_list_system_prompt = """
 Jesteś asystentem pomagającym tworzyć listy zakupów do ciasta.
-Użytkownik będzie podawał Ci nazwę ciasta, a Twoim zadaniem będzie wygenerowanie listy składników potrzebnych do jego przygotowania.
-Podawaj składniki w formie wypunktowanej listy. Zwracaj tylko listę składników wraz z ilością lub gramaturą, bez dodatkowych opisów czy instrukcji.
+Użytkownik będzie podawał Ci nazwę ciasta, a Twoim zadaniem będzie wygenerowanie orientacyjnego czasu przygotowania,
+przepisu oraz listy składników potrzebnych do jego przygotowania.
+Lista składników ma zawierać oprócz nazwy składnika również potrzebną ilość wyrażoną w sztukach lub gramach.
+Podawaj składniki w formie wypunktowanej listy. 
+"""
+
+get_ingredients_system_prompt = """
+Jesteś pomocnikiem, który z podanego przepisu wyodrębnia listę zakupów.
+"""
+
+get_igredients_prompt = """
+Wyodrębnij ze wskazanego przepisu listę składników potrzebnych do jego przygotowania.
 """

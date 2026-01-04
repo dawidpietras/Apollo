@@ -1,5 +1,6 @@
 import streamlit as st
 import backend.app as chat
+from models.chat_models import Ingredient, ShoppingList
 
 USER_AVATAR = "https://img.icons8.com/3d-fluency/94/eggplant.png"
 ASSISTANT_AVATAR = "https://img.icons8.com/3d-fluency/94/robot-2.png"
@@ -18,7 +19,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if "shopping_list" not in st.session_state:
-    st.session_state.shopping_list = ''
+    st.session_state.shopping_list = []
 
 for message in st.session_state.messages:
     icon = USER_AVATAR if message["role"] == "user" else ASSISTANT_AVATAR
@@ -37,9 +38,9 @@ if prompt := st.chat_input("Co chcesz dziś przekąsić?"):
 
 if st.button("Dodaj do listy zakupów") and st.session_state.messages:
     if st.session_state.shopping_list:
-        st.session_state.shopping_list += "\n" + st.session_state.messages[-1]["content"]
+        st.session_state.shopping_list.ingredients.extend(st.session_state.nutrionist.get_list_of_ingredients(st.session_state.messages[-1]["content"]).ingredients)
     else:
-        st.session_state.shopping_list = st.session_state.messages[-1]["content"]
+        st.session_state.shopping_list = st.session_state.nutrionist.get_list_of_ingredients(st.session_state.messages[-1]["content"])
     st.toast('Pomyślnie dodano produkty do listy zakupów!', icon='✅')
 
 # with st.sidebar:

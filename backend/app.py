@@ -2,11 +2,13 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 from backend.prompts import *
-
+from pydantic import BaseModel, Field
+import instructor
+from models.chat_models import Ingredient, ShoppingList
 
 load_dotenv(override=True)
 api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI()
+client = instructor.patch(OpenAI(api_key=api_key))
 
 class Nutritionist:
     
@@ -29,7 +31,6 @@ class Nutritionist:
         
         self.messages.append({"role": "user", "content": prompt})
         stream = client.chat.completions.create(model=self.model, messages=self.messages, stream=True)
-        print(self.model)
         response = ""
         for chunk in stream:
             chunk_content = chunk.choices[0].delta.content
@@ -44,6 +45,19 @@ class Nutritionist:
         # print(response.choices[0].message.content)
         # return assistant_response
 
+    def get_list_of_ingredients(self, recipe) -> ShoppingList:
+        messages = [
+            {"role": "system", "content": get_ingredients_system_prompt},
+            {"role": "user", "content": get_igredients_prompt + "\n\n" + recipe}
+        ]
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            response_model=ShoppingList
+        )
+        print(recipe)
+        # return response.choices[0].message.content
+        return response
 
 # a = Nutritionist()
 # a.change_persona("Dawid")
