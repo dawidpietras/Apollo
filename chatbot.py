@@ -19,7 +19,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if "shopping_list" not in st.session_state:
-    st.session_state.shopping_list = []
+    st.session_state.shopping_list = ShoppingList()
 
 for message in st.session_state.messages:
     icon = USER_AVATAR if message["role"] == "user" else ASSISTANT_AVATAR
