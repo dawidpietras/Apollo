@@ -2,9 +2,10 @@ from pydantic import BaseModel, Field
 from typing import List
 
 class Ingredient(BaseModel):
-    name: str = Field(..., description="Nazwa składnika")
-    quantity: int = Field(..., description="Ilość składnika jaki jest potrzebna")
-    unit: str = Field(..., description="Jednostka miary")
+    canonical_name: str = Field(..., description="Nazwa podstawowa składnika, bez dodatkowych określeń")
+    optional_name: str = Field(None, description="Opcjonalna dodatkowa, szczegółowa nazwa składnika lub dodatkowe określenia i przymiotniki")
+    quantity: int = Field(..., description="Ilość lub waga lub pojemność składnika jaka jest potrzebna")
+    unit: str = Field(..., description="Jednostka miary wynikająca z ilości składnika")
 
 class ShoppingList(BaseModel):
     formatted_summary: str = Field(

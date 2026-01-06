@@ -40,13 +40,26 @@ class ShoppingListDatabase:
         self.connection.commit()
     
     def update_item(self, item, quantity, unit):
+        unit = unit.strip().lower().replace('.', '')
+        item = item.strip().capitalize()
+        self.cursor.execute('''
+            SELECT id, quantity FROM shopping_list
+            WHERE item_name = ? AND unit = ?
+        ''', (item, unit))
+
+        result = self.cursor.fetchone()
+        if result is None:
+            self.add_item(item, quantity, unit)
+            return
+        
+        item_id, current_quantity = result
+        quantity += current_quantity
         self.cursor.execute('''
             UPDATE shopping_list
-            SET quantity = ?,
-                unit = ?
-            WHERE item_name = ?
+            SET quantity = ?
+            WHERE item_name = ? AND unit = ?
             
-        ''', (quantity, unit, item))
+        ''', (quantity, item, unit))
         self.connection.commit()
 
     def close(self):
@@ -54,20 +67,4 @@ class ShoppingListDatabase:
 
 if __name__ == "__main__":
     with ShoppingListDatabase() as db:
-        # db.add_item("jajka", 5, "szt")
-        # db.add_item("jajka", 10, "szt")
-        # db.delete_item(4)
-        items = db.get_items()
-        for item in items:
-            print(item)
-        dic = {item[1]: list(item[2:]) for item in items}
-        print(dic)
-        inputek = {'jajka': [1, 'szt']}
-        for key, value in inputek.items():
-            if key in dic:
-                dic[key][0] += value[0]
-            else:
-                dic[key] = value
-        print(dic)
-        for key, value in dic.items():
-            db.update_item(key, value[0], value[1])
+        db.update_item("Jajka", 12, "szt")

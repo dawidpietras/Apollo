@@ -1,14 +1,14 @@
 import streamlit as st
 import backend.app as chat
 from models.chat_models import Ingredient, ShoppingList
+import db.database as database
 
 USER_AVATAR = "https://img.icons8.com/3d-fluency/94/eggplant.png"
 ASSISTANT_AVATAR = "https://img.icons8.com/3d-fluency/94/robot-2.png"
 
 st.title("Dietetyk AI")
 
-# col1, col2 = st.columns([4,1], gap="large")
-
+### Initialize session state variables
 if "nutrionist" not in st.session_state:
     st.session_state.nutrionist = chat.Nutritionist()
     st.session_state.nutrionist.change_persona("Lista zakupów")
@@ -20,6 +20,8 @@ if "messages" not in st.session_state:
 
 if "shopping_list" not in st.session_state:
     st.session_state.shopping_list = ShoppingList()
+
+#### Chat Interface
 
 for message in st.session_state.messages:
     icon = USER_AVATAR if message["role"] == "user" else ASSISTANT_AVATAR
@@ -36,11 +38,16 @@ if prompt := st.chat_input("Co chcesz dziś przekąsić?"):
     
     st.session_state.messages.append({"role": "assistant", "content": response})
 
+
+### Shopping List Management
+
 if st.button("Dodaj do listy zakupów") and st.session_state.messages:
-    if st.session_state.shopping_list:
-        st.session_state.shopping_list.ingredients.extend(st.session_state.nutrionist.get_list_of_ingredients(st.session_state.messages[-1]["content"]).ingredients)
-    else:
-        st.session_state.shopping_list = st.session_state.nutrionist.get_list_of_ingredients(st.session_state.messages[-1]["content"])
+    last_ingredients = st.session_state.nutrionist.get_list_of_ingredients(st.session_state.messages[-1]["content"]).ingredients
+    st.session_state.shopping_list.ingredients.extend(last_ingredients)
+    with database.ShoppingListDatabase() as database:
+        for ingredient in last_ingredients:
+            print(ingredient, ingredient.canonical_name, ingredient.optional_name, ingredient.quantity, ingredient.unit)
+            database.update_item(ingredient.canonical_name, ingredient.quantity, ingredient.unit)
     st.toast('Pomyślnie dodano produkty do listy zakupów!', icon='✅')
 
 # with st.sidebar:
