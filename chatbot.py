@@ -1,6 +1,6 @@
 import streamlit as st
 import backend.app as chat
-from models.chat_models import Ingredient, ShoppingList
+from models.chat_models import Ingredient, IngredientWithBoughtStatus, ShoppingList
 import db.database as database
 
 USER_AVATAR = "https://img.icons8.com/3d-fluency/94/eggplant.png"
@@ -46,8 +46,8 @@ if st.button("Dodaj do listy zakupów") and st.session_state.messages:
     st.session_state.shopping_list.ingredients.extend(last_ingredients)
     with database.ShoppingListDatabase() as database:
         for ingredient in last_ingredients:
-            print(ingredient, ingredient.canonical_name, ingredient.optional_name, ingredient.quantity, ingredient.unit)
-            database.update_item(ingredient.canonical_name, ingredient.quantity, ingredient.unit)
+            db_item = IngredientWithBoughtStatus(**ingredient.model_dump())
+            database.update_item(db_item.canonical_name, db_item.quantity, db_item.unit, db_item.bought)
     st.toast('Pomyślnie dodano produkty do listy zakupów!', icon='✅')
 
 # with st.sidebar:

@@ -19,27 +19,50 @@ class ShoppingListDatabase:
                 id INTEGER PRIMARY KEY,
                 item_name TEXT NOT NULL,
                 quantity INTEGER NOT NULL,
-                unit TEXT
+                unit TEXT,
+                bought BOOLEAN
             )
         ''')
         self.connection.commit()
 
-    def add_item(self, item_name, quantity, unit):
+    def add_item(self, item_name, quantity, unit, bought):
         self.cursor.execute('''
-            INSERT INTO shopping_list (item_name, quantity, unit)
-            VALUES (?, ?, ?)
-        ''', (item_name, quantity, unit))
+            INSERT INTO shopping_list (item_name, quantity, unit, bought)
+            VALUES (?, ?, ?, ?)
+        ''', (item_name, quantity, unit, bought))
         self.connection.commit()
 
     def get_items(self):
         self.cursor.execute('SELECT * FROM shopping_list')
+        
         return self.cursor.fetchall()
 
     def delete_item(self, item_id):
         self.cursor.execute('DELETE FROM shopping_list WHERE id = ?', (item_id,))
         self.connection.commit()
     
-    def update_item(self, item, quantity, unit):
+    def update_item(self, item_name, quantity, unit, bought):
+        unit = unit.strip().lower().replace('.', '')
+        item_name = item_name.strip().capitalize()
+        self.cursor.execute('''
+            SELECT id FROM shopping_list
+            WHERE item_name = ? AND unit = ?
+        ''', (item_name, unit))
+
+        result = self.cursor.fetchone()
+        if result is None:
+            self.add_item(item_name, quantity, unit, bought)
+            return
+        
+        item_id = result[0]
+        self.cursor.execute('''
+            UPDATE shopping_list
+            SET quantity = ?, bought = ?
+            WHERE id = ?
+        ''', (quantity, bought, item_id))
+        self.connection.commit()
+    
+    def update_quantity(self, item, quantity, unit):
         unit = unit.strip().lower().replace('.', '')
         item = item.strip().capitalize()
         self.cursor.execute('''
@@ -60,6 +83,14 @@ class ShoppingListDatabase:
             WHERE item_name = ? AND unit = ?
             
         ''', (quantity, item, unit))
+        self.connection.commit()
+
+    def update_bought_status(self, item_id, bought):
+        self.cursor.execute('''
+            UPDATE shopping_list
+            SET bought = ?
+            WHERE id = ?
+        ''', (bought, item_id))
         self.connection.commit()
 
     def close(self):
