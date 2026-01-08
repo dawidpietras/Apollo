@@ -4,18 +4,40 @@ from db import database
 
 st.header("Twoja lista zakupów")
 
+def change_item_bought_status(item_id, bought):
+    with database.ShoppingListDatabase() as db:
+        db.update_bought_status(item_id, bought)
+
 with database.ShoppingListDatabase() as db:
     items = db.get_items()
     if items:
-        for item in items:
-            item_id, item_name, quantity, unit = item
-            st.checkbox(f"- {item_name}: {quantity} {unit}")
+        sorted_items = sorted(items, key=lambda x: x[4])
+        divider_drawn = False
+        for item in sorted_items:
+            item_id, item_name, quantity, unit, bought = item
+            
+            if bought and not divider_drawn:
+                st.divider()
+                divider_drawn = True
+            text = f"- {item_name}: {quantity} {unit}"
+            if bought:
+                text = f"- ~~{item_name}: {quantity} {unit}~~"
+            st.checkbox(
+                text,
+                value=bought,
+                key=f"item_{item_id}",
+                on_change= change_item_bought_status,
+                args=(item_id, not bought))
     else:
         st.write("Twoja lista zakupów jest pusta.")
 
-# if "shopping_list" in st.session_state and st.session_state.shopping_list:
-    
-#     for i, item in enumerate(st.session_state.shopping_list.ingredients):
-#         # st.checkbox(produkt, key=f"produkt_{i}")
-#         # print(i, produkt)
-#         st.checkbox(f"{item.name} - {item.quantity}{item.unit}", key=f"item_{i}")
+st.container(height=20, border=False)
+
+if st.button("Usuń kupione produkty", width="stretch"):
+    with database.ShoppingListDatabase() as db:
+        items = db.get_items()
+        for item in items:
+            item_id, item_name, quantity, unit, bought = item
+            if bought:
+                db.delete_item(item_id)
+    st.rerun()
