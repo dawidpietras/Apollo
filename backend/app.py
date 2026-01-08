@@ -41,8 +41,6 @@ class Nutritionist:
         
         self.messages.append({"role": "assistant", "content": assistant_response})
         
-        # print(response.choices[0].message.content)
-        # return assistant_response
 
     def get_list_of_ingredients(self, recipe) -> ShoppingList:
         messages = [
@@ -54,17 +52,5 @@ class Nutritionist:
             messages=messages,
             response_model=ShoppingList
         )
-        print(recipe)
-        # return response.choices[0].message.content
+        
         return response
-
-# a = Nutritionist()
-# a.change_persona("Dawid")
-# b = a.send_user_prompt("Cześć!")
-# print(b)
-# print(response)
-
-# print(f'Input tokens: {response.usage.prompt_tokens}')
-# print(f'Output tokens: {response.usage.completion_tokens}')
-# print(f'Total tokens: {response.usage.total_tokens}')
-# print(f'Total cost: {response._hidden_params["response_cost"]*100:.4f} cents')

@@ -62,7 +62,7 @@ class ShoppingListDatabase:
         ''', (quantity, bought, item_id))
         self.connection.commit()
     
-    def update_quantity(self, item, quantity, unit):
+    def update_quantity(self, item, quantity, unit, bought=False):
         unit = unit.strip().lower().replace('.', '')
         item = item.strip().capitalize()
         self.cursor.execute('''
@@ -72,7 +72,7 @@ class ShoppingListDatabase:
 
         result = self.cursor.fetchone()
         if result is None:
-            self.add_item(item, quantity, unit)
+            self.add_item(item, quantity, unit, bought)
             return
         
         item_id, current_quantity = result
