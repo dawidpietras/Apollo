@@ -18,8 +18,9 @@ nutrionist = st.session_state.nutrionist
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if "shopping_list" not in st.session_state:
-    st.session_state.shopping_list = ShoppingList()
+if "show_snow" not in st.session_state:
+    st.session_state.show_snow = True
+    st.snow()
 
 #### Chat Interface
 
@@ -43,7 +44,6 @@ if prompt := st.chat_input("Co chcesz dziś przekąsić?"):
 if st.session_state.messages:
     if st.button("Dodaj do listy zakupów"):
         last_ingredients = st.session_state.nutrionist.get_list_of_ingredients(st.session_state.messages[-1]["content"]).ingredients
-        st.session_state.shopping_list.ingredients.extend(last_ingredients)
         with database.ShoppingListDatabase() as database:
             for ingredient in last_ingredients:
                 db_item = IngredientWithBoughtStatus(**ingredient.model_dump())
