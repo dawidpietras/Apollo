@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 from backend.prompts import *
 import instructor
-from models.chat_models import Ingredient, ShoppingList
+from models.chat_models import ShoppingList
 
 load_dotenv(override=True)
 api_key = os.getenv("OPENAI_API_KEY")

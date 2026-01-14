@@ -6,10 +6,10 @@ import os
 from dotenv import load_dotenv
 import instructor
 from models.chat_models import ShoppingList
+from backend.prompts import *
 
 load_dotenv(override=True)
 api_key = os.getenv("OPENAI_API_KEY")
-# client = OpenAI(api_key=api_key)
 client = instructor.patch(OpenAI(api_key=api_key))
 
 if not st.session_state.get("transcription"):
@@ -18,11 +18,10 @@ if not st.session_state.get("transcription"):
 if not st.session_state.get("transcripted_text"):
     st.session_state["transcripted_text"] = ""
 
-st.header("Nagraj swój głos")
+st.header("Powiedź jakie produkty masz w domu")
 
 st.write("Naciśnij przycisk, aby rozpocząć nagrywanie.")
 
-# 2. Rejestrator dźwięku
 audio_results = mic_recorder(
     start_prompt="Naciśnij, aby rozpocząć nagrywanie",
     stop_prompt="Naciśnij, aby zakończyć nagrywanie",
@@ -57,10 +56,7 @@ if st.session_state["transcription"]:
     if st.button("Generuj listę zakupów z ostatniej transkrypcji"):
         with st.spinner("Generowanie listy zakupów..."):
             messages = [
-                {"role": "system", "content": "Jesteś pomocnym asystemntem, \
-                 który z podanego tekstu, który powinien być słownym opisem \
-                 produktów spożywczych które użytkownik posiada w domu wydobywa \
-                 listę tych produktów wraz z ilością."},
+                {"role": "system", "content": get_ingredients_from_transcription},
                 {"role": "user", "content": st.session_state.transcription}
             ]
             response = client.chat.completions.create(model="gpt-5.2",
@@ -75,10 +71,7 @@ if st.session_state["transcripted_text"]:
     if st.button("Wymyśl przepis z podanych składników"):
         with st.spinner("Generowanie przepisu..."):
             messages = [
-                {"role": "system", "content": "Jesteś pomocnym asystemntem, \
-                 który z podanej listy składników stara się ułożyć przepis \
-                     na danie. Zakładaj, że użytkownik posiada podstawowe \
-                         produkty w domu takie jak sól, przyprawy, olej itd."},
+                {"role": "system", "content": get_recipe_from_transcripted_ingredients},
                 {"role": "user", "content": st.session_state.transcripted_text}
             ]
             response = client.chat.completions.create(model="gpt-5.2",
