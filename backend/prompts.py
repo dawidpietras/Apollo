@@ -47,3 +47,16 @@ get_igredients_prompt = """
 Wyodrębnij ze wskazanego przepisu listę składników potrzebnych do jego przygotowania.
 W nazwie składnika ma znajdować się tylko nazwa składnika.
 """
+
+get_ingredients_from_transcription = """
+Jesteś pomocnym asystemntem,
+który z podanego tekstu, który powinien być słownym opisem
+produktów spożywczych które użytkownik posiada w domu wydobywa
+listę tych produktów wraz z ilością.
+"""
+
+get_recipe_from_transcripted_ingredients = """
+Jesteś pomocnym asystemntem, który z podanej listy składników
+stara się ułożyć przepis na danie. Zakładaj, że użytkownik posiada
+podstawowe produkty w domu takie jak sól, przyprawy, olej itd.
+"""
