@@ -1,16 +1,12 @@
 import streamlit as st
 from streamlit_mic_recorder import mic_recorder
 import io
-from openai import OpenAI
-import os
-from dotenv import load_dotenv
-import instructor
 from models.chat_models import ShoppingList
 from backend.prompts import *
+from backend.llm_client import get_sync_client
 
-load_dotenv(override=True)
-api_key = os.getenv("OPENAI_API_KEY")
-client = instructor.patch(OpenAI(api_key=api_key))
+
+client = get_sync_client()
 
 if not st.session_state.get("transcription"):
     st.session_state["transcription"] = ""
@@ -74,6 +70,23 @@ if st.session_state["transcripted_text"]:
                 {"role": "system", "content": get_recipe_from_transcripted_ingredients},
                 {"role": "user", "content": st.session_state.transcripted_text}
             ]
-            response = client.chat.completions.create(model="gpt-5.2",
-                                           messages=messages)
-            st.write(response.choices[0].message.content)
+            def stream_response():
+                stream = client.chat.completions.create(
+                    model="gpt-5.2",
+                    messages=messages,
+                    stream=True
+                )
+                response = ""
+                for chunk in stream:
+                    chunk_content = chunk.choices[0].delta.content
+                    if chunk_content:
+                        response += chunk_content
+                        yield chunk_content
+            col1, col2 = st.columns(2)
+            p1 = col1.empty()
+            p2 = col2.empty()
+            res = ""
+            for text in stream_response():
+                res += text
+                p1.markdown(res)
+                p2.markdown(res)
