@@ -5,7 +5,6 @@ from models.chat_models import ShoppingList
 from backend.prompts import *
 from backend.llm_client import get_sync_client
 
-
 client = get_sync_client()
 
 if not st.session_state.get("transcription"):
