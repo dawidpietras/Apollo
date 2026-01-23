@@ -81,11 +81,4 @@ if st.session_state["transcripted_text"]:
                     if chunk_content:
                         response += chunk_content
                         yield chunk_content
-            col1, col2 = st.columns(2)
-            p1 = col1.empty()
-            p2 = col2.empty()
-            res = ""
-            for text in stream_response():
-                res += text
-                p1.markdown(res)
-                p2.markdown(res)
+            st.write_stream(stream_response())

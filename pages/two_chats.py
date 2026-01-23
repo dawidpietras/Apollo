@@ -12,8 +12,7 @@ async def stream_to_placeholder(prompt, placeholder):
             {"role": "system", "content": "Jesteś filozofem i na zadanie pytanie odpowiadasz z dwóch przeciwstawnych stron."},
             {"role": "user", "content": prompt}],
         model="gpt-5.2",
-        stream=True,
-        max_completion_tokens=300
+        stream=True
     )
 
     response = ""
@@ -38,5 +37,4 @@ async def run_parallel_queries():
 st.title("Async is King!")
 
 if st.button("Zadaj pytania"):
-    # Ponieważ Streamlit jest synchroniczny, musimy "odpalić" pętlę asyncio
     asyncio.run(run_parallel_queries())
