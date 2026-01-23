@@ -1,6 +1,6 @@
 import streamlit as st
-import backend.app as chat
-from models.chat_models import Ingredient, IngredientWithBoughtStatus, ShoppingList
+import backend.nutritionist as chat
+from models.chat_models import IngredientWithBoughtStatus
 import db.database as database
 
 USER_AVATAR = "https://img.icons8.com/3d-fluency/94/eggplant.png"

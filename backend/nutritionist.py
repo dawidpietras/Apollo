@@ -1,15 +1,11 @@
-from openai import OpenAI
-from dotenv import load_dotenv
-import os
 from backend.prompts import *
-import instructor
 from models.chat_models import ShoppingList
-
-load_dotenv(override=True)
-api_key = os.getenv("OPENAI_API_KEY")
-client = instructor.patch(OpenAI(api_key=api_key))
+from backend.llm_client import get_sync_client
 
 class Nutritionist:
+    
+    def __init__(self):
+        self.client = get_sync_client()
     
     def set_model(self, model):
         self.model = model
@@ -29,7 +25,7 @@ class Nutritionist:
     def send_user_prompt(self, prompt):
         
         self.messages.append({"role": "user", "content": prompt})
-        stream = client.chat.completions.create(model=self.model, messages=self.messages, stream=True)
+        stream = self.client.chat.completions.create(model=self.model, messages=self.messages, stream=True)
         response = ""
         for chunk in stream:
             chunk_content = chunk.choices[0].delta.content
@@ -47,7 +43,7 @@ class Nutritionist:
             {"role": "system", "content": get_ingredients_system_prompt},
             {"role": "user", "content": get_igredients_prompt + "\n\n" + recipe}
         ]
-        response = client.chat.completions.create(
+        response = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
             response_model=ShoppingList
