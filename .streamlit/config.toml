@@ -4,3 +4,7 @@ backgroundColor = "#121212"      # Głęboka czerń/szarość
 secondaryBackgroundColor = "#1E1E1E" # Nieco jaśniejsze tło panelu
 textColor = "#FAFAFA"            # Biały tekst
 font = "sans serif"
+
+[server]
+sslCertFile = "raspi5.tail4f9dcc.ts.net.crt"
+sslKeyFile = "raspi5.tail4f9dcc.ts.net.key"
