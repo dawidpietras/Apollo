@@ -57,12 +57,23 @@ if audio_results:
             
             col2.empty()
 
-            tool_calls = response.choices[0].message.tool_calls
-            for call in tool_calls:
-                if call.function.name == "add_task":
-                    col1.markdown(call.function.arguments)
-                elif call.function.name == "update_shopping_list":
-                    col2.markdown(call.function.arguments)
+            if response.choices[0].finish_reason == 'tool_calls':
+                response_functions = response.choices[0].message.tool_calls
+            
+                for calls in response_functions:
+
+                    if calls.function.name == "add_task":
+                        task = json.loads(calls.function.arguments)
+                        col1.markdown(task['task'])
+                    elif calls.function.name == "update_shopping_list":
+                        shopping_list = json.loads(calls.function.arguments)
+                        text = shopping_list['ingredient_name']
+                        if shopping_list.get("quantity"):
+                            text = shopping_list['ingredient_name'] + ' - ' + shopping_list["quantity"]
+                        col2.markdown(text)
+            else:
+                st.markdown(response.choices[0].message.content.split('\n')[0])
         except Exception as e:
+            print(response.choices[0].message)
             st.error(f"Wystąpił błąd API: {e}")
 
