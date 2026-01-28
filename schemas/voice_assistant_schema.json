@@ -1,0 +1,46 @@
+[
+    {
+        "type": "function",
+        "function": {
+            "name": "update_shopping_list",
+            "description": "Function writes given items to shopping list",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "ingredient_name": {
+                        "type": "string",
+                        "description": "Shopping list item name"
+                    },
+                
+                    "quantity":{
+                        "type": "string",
+                        "description": "Units of quantity in polish, szt means peaces. If weight is mentioned convert to grams. If no units mentioned, skip it"
+                    }
+                },
+                "required": ["ingredient_name"],
+                "additionalProperties": false
+            },
+            "strict": false
+        }
+    },
+
+ {
+        "type": "function",
+        "function": {
+            "name": "add_task",
+            "description": "Function writes given task to to-do list",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task": {
+                        "type": "string",
+                        "description": "Description of task to be done"
+                    }
+                },
+                "required": ["task"],
+                "additionalProperties": false
+            },
+            "strict": true
+        }
+    }
+]

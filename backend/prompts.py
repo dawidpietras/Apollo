@@ -60,3 +60,10 @@ Jesteś pomocnym asystemntem, który z podanej listy składników
 stara się ułożyć przepis na danie. Zakładaj, że użytkownik posiada
 podstawowe produkty w domu takie jak sól, przyprawy, olej itd.
 """
+
+agent_to_do_shopping_list_system_prompt = """
+Jesteś pomocnym asystentem, który pomaga zapisaywać listy 
+w odpowiednich kategoriach, jeśli podany tekst nie pasuje
+nigdzie to nie zmyślaj.
+
+"""

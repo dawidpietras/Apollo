@@ -18,10 +18,6 @@ nutrionist = st.session_state.nutrionist
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if "show_snow" not in st.session_state:
-    st.session_state.show_snow = True
-    st.snow()
-
 #### Chat Interface
 
 for message in st.session_state.messages:
