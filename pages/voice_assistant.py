@@ -6,74 +6,106 @@ from backend.prompts import agent_to_do_shopping_list_system_prompt
 import os
 import json
 import io
-
+from typing import Dict, Type
+from sqlmodel import SQLModel
+from models.models import ShoppingItem, ToDoTask
 load_dotenv(override=True)
 api_key = os.getenv("OPENAI_API_KEY")
 
 if not st.session_state.get("todo-shopping-list"):
     st.session_state["todo-shopping-list"] = ""
-    
 
+if not st.session_state.get("tool-call-transcription"):
+    st.session_state["tool-call-transcription"] = ""
 
-assert os.path.exists("schemas//voice_assistant_schema.json")
+if not st.session_state.get("tool-call-pairs"):
+    st.session_state["tool-call-pairs"] = []
+
 
 client = OpenAI(api_key=api_key)
 
-with open("schemas//voice_assistant_schema.json", "r") as f:
-    voice_assistant_schema = json.load(f)
+# Mapping for function to be returned by LLM and db model
+TOOLS_MAPPING: Dict[str, Type[SQLModel]] = {
+    "update_shopping_list": ShoppingItem,
+    "add_task": ToDoTask
+}
 
-audio_results = mic_recorder(
-    start_prompt="Naciśnij, aby rozpocząć nagrywanie",
-    stop_prompt="Naciśnij, aby zakończyć nagrywanie",
-    format="wav",
-    key="mic_recorder"
-)
+def get_openai_tools():
+    return [
+        {
+            "type": "function",
+            "function": {
+                "name": name,
+                "description": f"Wywołaj gdy chcesz: {name}",
+                "parameters": model.model_json_schema()
+            }
+        } for name, model in TOOLS_MAPPING.items()
+    ]
 
-if audio_results:
-    audio_bytes = audio_results.get('bytes')
+def get_speech_to_text():
     
-    with st.spinner("Transkrypcja nagrania przez OpenAI..."):
-        try:
-            audio_buffer = io.BytesIO(audio_bytes)
-            audio_buffer.name = "audio.wav"
-            transcription = client.audio.transcriptions.create(
-                model="whisper-1", 
-                file=audio_buffer,
-                language="pl"
-            )
+    audio_results = mic_recorder(
+        start_prompt="Naciśnij, aby rozpocząć nagrywanie",
+        stop_prompt="Naciśnij, aby zakończyć nagrywanie",
+        format="wav",
+        key="mic_recorder"
+    )
+
+    if audio_results:
+        audio_bytes = audio_results.get('bytes')
+        
+        with st.spinner("Transkrypcja nagrania przez OpenAI..."):
             
-            st.success("Transkrypcja zakończona!")
-            st.subheader("Rozpoznany tekst:")
-            st.write(transcription.text)
-            
-            messages = [
-                {"role": "system", "content": agent_to_do_shopping_list_system_prompt},
-                {"role": "user", "content": transcription.text}
-                    ]
-            response = client.chat.completions.create(model="gpt-5.2", messages=messages, tools=voice_assistant_schema)
+                audio_buffer = io.BytesIO(audio_bytes)
+                audio_buffer.name = "audio.wav"
+                transcription = client.audio.transcriptions.create(
+                    model="whisper-1", 
+                    file=audio_buffer,
+                    language="pl"
+                )
+                
+                st.success("Transkrypcja zakończona!")
+                st.subheader("Rozpoznany tekst:")
+                st.write(transcription.text)
+                st.session_state["tool-call-transcription"] = transcription.text
 
-            col1, col2 = st.columns(2)
+def extract_tool_calls_from_transcript():
+    
+    if st.session_state["tool-call-transcription"]:
+        messages = [
+            {"role": "system", "content": agent_to_do_shopping_list_system_prompt},
+            {"role": "user", "content": st.session_state["tool-call-transcription"]}
+                ]
+        response = client.chat.completions.create(model="gpt-5.2", messages=messages, tools=get_openai_tools())
+        
+        if response.choices[0].finish_reason == 'tool_calls':
+            response_functions = response.choices[0].message.tool_calls
+            tool_calls = []
+            for calls in response_functions:
+                tool_calls.append([calls.function.name, calls.function.arguments])
+            st.session_state["tool-call-pairs"] = tool_calls
 
-            
-            col2.empty()
+@st.fragment
+def create_checkboxes():
+    if st.session_state["tool-call-pairs"]:
+        col1, col2 = st.columns(2)
+        col1.empty()
+        col2.empty()
+        tool_calls = st.session_state["tool-call-pairs"]
+        for calls in tool_calls:
+            if calls[0] == "add_task":
+                task = json.loads(calls[1])
+                col1.checkbox(label=task['title'], value=True)
+            elif calls[0] == "update_shopping_list":
+                shopping_list = json.loads(calls[1])
+                text = shopping_list['name'].capitalize()
+                if shopping_list.get("quantity"):
+                    text += ' - ' + str(shopping_list["quantity"])
+                if shopping_list.get("unit"):
+                    text += ' ' + shopping_list["unit"]
+                col2.checkbox(label=text, value=True)
 
-            if response.choices[0].finish_reason == 'tool_calls':
-                response_functions = response.choices[0].message.tool_calls
-            
-                for calls in response_functions:
+get_speech_to_text()
+extract_tool_calls_from_transcript()
 
-                    if calls.function.name == "add_task":
-                        task = json.loads(calls.function.arguments)
-                        col1.markdown(task['task'])
-                    elif calls.function.name == "update_shopping_list":
-                        shopping_list = json.loads(calls.function.arguments)
-                        text = shopping_list['ingredient_name']
-                        if shopping_list.get("quantity"):
-                            text = shopping_list['ingredient_name'] + ' - ' + shopping_list["quantity"]
-                        col2.markdown(text)
-            else:
-                st.markdown(response.choices[0].message.content.split('\n')[0])
-        except Exception as e:
-            print(response.choices[0].message)
-            st.error(f"Wystąpił błąd API: {e}")
-
+create_checkboxes()
