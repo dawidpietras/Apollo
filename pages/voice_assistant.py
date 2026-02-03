@@ -8,6 +8,7 @@ import json
 import io
 from typing import Dict, Type
 from sqlmodel import SQLModel
+from db.model_sql import insert_shopping_list_item
 from models.models import ShoppingItem, ToDoTask
 load_dotenv(override=True)
 api_key = os.getenv("OPENAI_API_KEY")
@@ -68,7 +69,7 @@ def get_speech_to_text():
                 st.subheader("Rozpoznany tekst:")
                 st.write(transcription.text)
                 st.session_state["tool-call-transcription"] = transcription.text
-
+                
 def extract_tool_calls_from_transcript():
     
     if st.session_state["tool-call-transcription"]:
@@ -82,8 +83,12 @@ def extract_tool_calls_from_transcript():
             response_functions = response.choices[0].message.tool_calls
             tool_calls = []
             for calls in response_functions:
-                tool_calls.append([calls.function.name, calls.function.arguments])
+                tool_calls.append(TOOLS_MAPPING[calls.function.name](**(json.loads(calls.function.arguments))))
             st.session_state["tool-call-pairs"] = tool_calls
+
+def change_bought_status(item: ShoppingItem):
+    item.bought = not item.bought
+    return item
 
 @st.fragment
 def create_checkboxes():
@@ -93,19 +98,26 @@ def create_checkboxes():
         col2.empty()
         tool_calls = st.session_state["tool-call-pairs"]
         for calls in tool_calls:
-            if calls[0] == "add_task":
-                task = json.loads(calls[1])
-                col1.checkbox(label=task['title'], value=True)
-            elif calls[0] == "update_shopping_list":
-                shopping_list = json.loads(calls[1])
-                text = shopping_list['name'].capitalize()
-                if shopping_list.get("quantity"):
-                    text += ' - ' + str(shopping_list["quantity"])
-                if shopping_list.get("unit"):
-                    text += ' ' + shopping_list["unit"]
-                col2.checkbox(label=text, value=True)
+            if isinstance(calls, ToDoTask):
+                col1.checkbox(label=calls.title, value=True)
+            elif isinstance(calls, ShoppingItem):
+                text = calls.name.capitalize()
+                if calls.quantity:
+                    text += ' - ' + str(calls.quantity)
+                if calls.unit:
+                    text += ' ' + calls.unit
+                col2.checkbox(label=text, value=not calls.bought, on_change=change_bought_status, args=(calls,))
+
+def save_ingredients_to_shopping_list():
+    if st.session_state["tool-call-pairs"]:
+        if st.button(label="Wyślij do listy zakupów"):
+            for item in st.session_state["tool-call-pairs"]:
+                if isinstance(item, ShoppingItem):
+                    insert_shopping_list_item(item)
+            else:
+                st.session_state["tool-call-pairs"] = []
 
 get_speech_to_text()
 extract_tool_calls_from_transcript()
-
 create_checkboxes()
+save_ingredients_to_shopping_list()

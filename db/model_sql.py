@@ -10,7 +10,7 @@ engine = create_engine(sqlite_url, echo=True)
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
-def insert(ingredient: ShoppingItem | ToDoTask):
+def insert_shopping_list_item(ingredient: ShoppingItem):
 
     with Session(engine) as session:
         session.add(ingredient)

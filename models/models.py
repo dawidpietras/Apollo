@@ -10,17 +10,17 @@ class Priority(str, Enum):
 class ShoppingItem(SQLModel, table=True, extend_existing=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(..., description="Name of the ingredient in polish language")
-    quantity: int = Field(None,
+    quantity: int | None = Field(None,
                           description="""Item quantity declared in pieces
                           (szt in polish) or in grams depends on user input.
                           Use polish szt or just g for grams. This field can be empty
                           because user can just say 'bananas' without defining quantity.
                           Quantity unit is not included here just number.""")
-    unit: str = Field(None,
+    unit: str| None = Field(None,
                       description="""Quantity unit declared by user. Use szt for slices or
                       units and grams (g) for weight units.""",
                       schema_extra={"type": "string"})
-    bought: bool = Field(False,
+    bought: bool | None = Field(False,
                          description="""If no info is given from user, assume that False is
                          the right value""")
 
