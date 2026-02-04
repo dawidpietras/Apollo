@@ -30,7 +30,6 @@ if prompt := st.chat_input("Co chcesz dziś przekąsić?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     
     with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
-        # st.markdown(response)
         response = st.write_stream(st.session_state.nutrionist.send_user_prompt(prompt))
     
     st.session_state.messages.append({"role": "assistant", "content": response})

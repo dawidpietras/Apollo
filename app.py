@@ -1,8 +1,15 @@
 import streamlit as st
+from db.model_sql import create_db_and_tables
 
-chatbot_page = st.Page("pages//chatbot.py", title="Chatbot", icon="💬")
-shopping_list_page = st.Page("pages//shopping_list.py", title="Shopping List", icon="🛒")
-record_page = st.Page("pages//recorder_page.py", title="Recorder", icon="🎤")
+@st.cache_resource
+def init_database():
+    create_db_and_tables()
+
+init_database()
+
+chatbot_page = st.Page("pages//chatbot.py", title="Książka kucharksa", icon=":material/chef_hat:")
+shopping_list_page = st.Page("pages//shopping_list.py", title="Lista zakupów", icon="🛒")
+record_page = st.Page("pages//recorder_page.py", title="Kucharz", icon="🎤")
 two_chats_page = st.Page("pages//two_chats.py", title="Two chats", icon="💬")
 voice_assistant = st.Page("pages//voice_assistant.py", title="Voice Assistant", icon="💬")
 
